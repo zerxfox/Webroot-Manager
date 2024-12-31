@@ -1,0 +1,140 @@
+#!/system/bin/sh
+
+MODULES_DIR="/data/adb/modules"
+OUTPUT_HTML="$MODULES_DIR/webroot/files/modules_list.html"
+NGINX_CONF="$MODULES_DIR/webroot/files/nginx.conf"
+PORT=8080
+
+if [ ! -d "$MODULES_DIR" ]; then
+  echo "Папка модулей $MODULES_DIR не найдена."
+  exit 1
+fi
+
+su -c "chmod 755 /data/adb"
+su -c "chmod 755 $MODULES_DIR"
+su -c "chmod 755 $MODULES_DIR/webroot/files"
+su -c "chmod 755 /data/local/nginx"
+
+: > "$MODULES_DIR/webroot/files/nginx_error.log"
+
+cat <<EOF > "$OUTPUT_HTML"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WEBROOT</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>WEBROOT</h2>
+      <div class="header-right">
+        <button class="menu-toggle">
+          <span class="menu-icon"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="main-nav">
+      <div class="cards">
+        <div class="card">
+          <a href="https://t.me/GhostCISProject">
+            <img src="pic/telega.png" alt="TG 1">
+            <p>Channel</p>
+          </a>
+        </div>
+        <div class="card">
+          <a href="https://t.me/GhostCISProject_TaD">
+            <img src="pic/telega.png" alt="TG 2">
+            <p>Chat</p>
+          </a>
+        </div>
+        <div class="card">
+          <a href="https://github.com/zerxfox/DexOptimizer">
+            <img src="pic/git.png" alt="GIT 1">
+            <p>Dex Optimizer</p>
+          </a>
+        </div>
+      </div>
+      <div class="theme-selector">
+        <div class="theme-option" data-theme="calmNight" style="background: linear-gradient(45deg, hsl(240deg 100% 20%) 6%, hsl(281deg 100% 21%) 21%, hsl(304deg 100% 23%) 32%, hsl(319deg 100% 30%) 41%, hsl(329deg 100% 36%) 49%, hsl(336deg 100% 41%) 57%, hsl(346deg 83% 51%) 64%, hsl(3deg 95% 61%) 71%, hsl(17deg 100% 59%) 77%, hsl(30deg 100% 55%) 83%, hsl(40deg 100% 50%) 89%, hsl(48deg 100% 50%) 95%, hsl(55deg 100% 50%) 100%);"></div>
+        <div class="theme-option" data-theme="mutedOcean" style="background: linear-gradient(320deg, hsl(141deg 82% 25%) 0%, hsl(114deg 48% 30%) 4%, hsl(95deg 53% 28%) 8%, hsl(81deg 55% 27%) 14%, hsl(70deg 55% 26%) 23%, hsl(60deg 52% 26%) 37%, hsl(51deg 50% 28%) 52%, hsl(43deg 47% 30%) 63%, hsl(37deg 44% 32%) 71%, hsl(31deg 39% 34%) 77%, hsl(26deg 35% 36%) 82%, hsl(21deg 30% 37%) 87%, hsl(16deg 26% 38%) 91%, hsl(11deg 21% 38%) 94%, hsl(6deg 17% 39%) 97%, hsl(0deg 13% 39%) 100%);"></div>
+        <div class="theme-option" data-theme="calmSunset" style="background: linear-gradient(-110deg, #581707, #445f64, #4d7e7e);"></div>
+        <div class="theme-option" data-theme="darkForest" style="background: linear-gradient(150deg, hsl(0deg 89% 50%) 0%, hsl(16deg 100% 45%) 0%, hsl(24deg 100% 42%) 2%, hsl(32deg 100% 39%) 6%, hsl(39deg 100% 36%) 13%, hsl(48deg 100% 33%) 21%, hsl(58deg 100% 29%) 32%, hsl(69deg 100% 30%) 45%, hsl(79deg 100% 31%) 59%, hsl(97deg 62% 40%) 75%, hsl(123deg 47% 46%) 89%, hsl(149deg 84% 38%) 100%);"></div>
+        <div class="theme-option" data-theme="duskyLavender" style="background: linear-gradient(45deg, hsl(240deg 100% 20%) 0%, hsl(256deg 83% 21%) 8%, hsl(263deg 64% 22%) 14%, hsl(270deg 48% 22%) 19%, hsl(281deg 34% 23%) 23%, hsl(300deg 21% 24%) 28%, hsl(334deg 16% 27%) 31%, hsl(15deg 17% 28%) 35%, hsl(38deg 25% 28%) 38%, hsl(50deg 35% 27%) 41%, hsl(53deg 40% 25%) 45%, hsl(51deg 39% 23%) 48%, hsl(49deg 38% 21%) 51%, hsl(46deg 38% 20%) 55%, hsl(42deg 37% 18%) 60%, hsl(38deg 36% 16%) 65%, hsl(32deg 34% 14%) 71%, hsl(24deg 33% 12%) 78%, hsl(15deg 33% 10%) 87%, hsl(0deg 38% 8%) 100%);"></div>
+        <div class="theme-option" data-theme="mistyDawn" style="background: linear-gradient(-25deg, #153049, #5188aa, #133c3f);"></div>
+        <div class="theme-option" data-theme="urbanSlate" style="background: linear-gradient(-75deg, #1b2229, #858585, #1b2629);"></div>
+        <div class="theme-option" data-theme="foggyRiver" style="background: linear-gradient(340deg, hsl(250deg 98% 18%) 0%, hsl(265deg 100% 18%) 5%, hsl(275deg 100% 18%) 10%, hsl(284deg 100% 18%) 14%, hsl(293deg 100% 18%) 19%, hsl(302deg 100% 18%) 24%, hsl(309deg 100% 20%) 29%, hsl(315deg 100% 22%) 33%, hsl(320deg 100% 24%) 38%, hsl(324deg 100% 26%) 43%, hsl(328deg 100% 28%) 48%, hsl(332deg 100% 30%) 52%, hsl(335deg 100% 31%) 57%, hsl(338deg 100% 32%) 62%, hsl(340deg 100% 34%) 67%, hsl(343deg 100% 35%) 71%, hsl(345deg 100% 36%) 76%, hsl(347deg 100% 37%) 81%, hsl(350deg 100% 38%) 86%, hsl(352deg 100% 38%) 90%, hsl(357deg 94% 40%) 95%, hsl(9deg 99% 39%) 100%);"></div>
+        <div class="theme-option" data-theme="deepStorm" style="background: linear-gradient(-25deg, #0f3646, #4d0707, #7d868d);"></div>
+        <div class="theme-option" data-theme="eclipse" style="background: linear-gradient(-9deg, #000000,#000000);"></div>
+      </div>
+    </nav>
+    <main>
+      <h1> </h1>
+      <div class="cards">
+EOF
+
+cat <<EOF > "$NGINX_CONF"
+events {}
+
+http {
+  include /data/local/nginx/etc/nginx/mime.types;
+    server {
+        listen $PORT;
+        server_name localhost;
+        root $MODULES_DIR;
+        
+        location / {
+            root $MODULES_DIR/webroot/files;
+            index modules_list.html;
+        }
+EOF
+
+found_modules=false
+
+for module_dir in "$MODULES_DIR"/*; do
+  if [ -f "$module_dir/disable" ]; then
+    continue
+  fi
+  
+  if [ -d "$module_dir/webroot" ] && [ -f "$module_dir/webroot/index.html" ]; then
+    found_modules=true
+    module_name=$(basename "$module_dir")
+    if [ -f "$module_dir/webroot/module_icon.png" ]; then
+      icon_path="$module_name/webroot/module_icon.png"
+    else
+      icon_path="pic/module_icon.png"
+    fi
+    echo "<div class=\"card\"><a href=\"http://localhost:$PORT/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></a><div class=\"checkmark\"></div></div>" >> "$OUTPUT_HTML"
+    cat <<EOF >> "$NGINX_CONF"
+
+        location /$module_name/webroot/ {
+            root $MODULES_DIR;
+            index index.html;
+        }
+EOF
+  fi
+done
+
+if [ "$found_modules" = false ]; then
+  echo "<p>Nothing</p>" >> "$OUTPUT_HTML"
+fi
+
+
+cat <<EOF >> "$NGINX_CONF"
+        error_log $MODULES_DIR/webroot/files/nginx_error.log;
+    }
+}
+EOF
+
+cat <<EOF >> "$OUTPUT_HTML"
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+EOF
+
+su -c "nginx -c '$NGINX_CONF'"

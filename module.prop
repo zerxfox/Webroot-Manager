@@ -1,0 +1,6 @@
+id=webroot
+name=Webroot Manager
+version=1.1.0
+versionCode=1100
+author=zerxfox&Rinker001
+description=The Webroot Manager streamlines access to web interfaces by organizing and optimizing module webroots. Easily manage and explore module features through a unified interface. Start in the browser: localhost:8080
