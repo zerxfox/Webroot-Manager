@@ -1,6 +1,11 @@
 # Webroot-Manager [en] 
 
-**Webroot Manager** analyzes each module for the presence of a `webroot` directory and automatically creates a web interface for interacting with modules.  
+**Webroot Manager** analyzes each module for the presence of a `webroot` directory and automatically creates a web interface for interacting with modules.
+
+## Technical Requirements:  
+- Android 10+  
+- Magisk, Apatch, or KSU  
+- A terminal, such as Termux  
 
 ## Launching Webroot Manager  
 1. **Via the Action Button** (available from Magisk v28.0).  
@@ -71,6 +76,11 @@ su -c webroot
 # Webroot-Manager [ru] 
 
 **Webroot Manager** анализирует каждый модуль на наличие `webroot` и автоматически создаёт веб-интерфейс для взаимодействия с модулями.  
+
+## Технические требования:  
+- Android 10+  
+- Magisk, Apatch или KSU  
+- Терминал, например, Termux  
 
 ## Запуск Webroot Manager  
 1. **Через action button** (доступно с Magisk v28.0).  
