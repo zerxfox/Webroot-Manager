@@ -59,9 +59,9 @@ su -c webroot
   ```
   nginx: [emerg] bind() to 0.0.0.0:8080 failed (98: Address already in use)
   ```
-  This means Webroot Manager is already running.  
+  This means Webroot Manager is active. 
 
-- If the output is empty, it confirms Webroot Manager is active.  
+- If the output is empty, it confirms Webroot Manager is already running.  
 
 ### **Q: Webroot Manager displays pages incorrectly**  
 **A:** This issue is unrelated to the Webroot Manager itself. It merges the module's `html` and its components into a single configuration. Module developers can adapt their modules to work seamlessly with Webroot Manager in the future.  
@@ -129,9 +129,9 @@ su -c webroot
   ```
   nginx: [emerg] bind() to 0.0.0.0:8080 failed (98: Address already in use)
   ```
-  Это означает, что Webroot Manager уже запущен.  
+  Это означает, что Webroot Manager активен.  
 
-- Если вывод пустой, это подтверждает, что Webroot Manager активен.  
+- Если вывод пустой, это подтверждает, что Webroot Manager уже запущен.
 
 ### **В: Webroot Manager некорректно отображает страницы**  
 **О:** Эта ошибка не связана с Webroot Manager. Он объединяет `html` модуля и его компоненты в единую конфигурацию. Разработчики модулей могут адаптировать свои модули для работы с Webroot Manager в будущем.  
