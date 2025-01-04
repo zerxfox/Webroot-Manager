@@ -54,6 +54,9 @@ When linking `css`, `js`, `php`, or other files in `html`, avoid using a leading
 <link href="/styles.css">
 ```  
 
+## List of modules supporting Webroot Manager
+[BatteryStat](https://github.com/British377/BatteryStat)
+
 ## Potential Issues  
 
 ### **Q: The browser doesn't open `localhost:8080`**  
@@ -127,7 +130,10 @@ module/
 ```html
 <img src="/files/icon.png">  
 <link href="/styles.css">
-```  
+```
+
+## Список модулей, поддерживающих Webroot Manager
+[BatteryStat](https://github.com/British377/BatteryStat)
 
 ## Возможные ошибки  
 
