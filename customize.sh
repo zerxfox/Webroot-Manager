@@ -9,7 +9,8 @@ LINKPUB="t.me/GhostCISProject_TaD"
 LANG=$(settings get system system_locales)
 SYSTEM_BIN="$MODPATH/system/bin"
 
-su -c "cp -r $MODPATH/nginx /data/local/"
+su -c "cp -r $MODPATH/openresty /data/local/"
+su -c "chmod -R 777 /data/local/openresty"
 su -c "chmod 755 /data/adb/modules"
 
 is_language_supported() {
@@ -45,7 +46,7 @@ print_info() {
 set_permissions() {
     set_perm_recursive $MODPATH 0 0 0755 0644
     set_perm $SYSTEM_BIN/webroot 0 0 0777
-    set_perm $SYSTEM_BIN/nginx 0 0 0777
+    set_perm $SYSTEM_BIN/openresty 0 0 0777
 }
 
 print_info
