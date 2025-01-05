@@ -13,7 +13,7 @@ fi
 su -c "chmod 755 /data/adb"
 su -c "chmod 755 $MODULES_DIR"
 su -c "chmod 755 $MODULES_DIR/webroot/files"
-su -c "chmod 755 /data/local/nginx"
+su -c "chmod 755 /data/local/openresty"
 
 : > "$MODULES_DIR/webroot/files/nginx_error.log"
 
@@ -31,6 +31,11 @@ cat <<EOF > "$OUTPUT_HTML"
     <header>
       <h2>WEBROOT</h2>
       <div class="header-right">
+        <button class="reload-btn">
+          <svg class="reload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+            <path d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-2.34-5.66l-2.12 2.12H22V2l-2.41 2.41A9.97 9.97 0 0 0 12 2z"></path>
+          </svg>
+        </button>
         <button class="menu-toggle">
           <span class="menu-icon"></span>
         </button>
@@ -38,23 +43,21 @@ cat <<EOF > "$OUTPUT_HTML"
     </header>
     <nav class="main-nav">
       <div class="cards">
-        <div class="card">
-          <a href="https://t.me/GhostCISProject">
-            <img src="pic/telega.png" alt="TG 1">
-            <p>Channel</p>
-          </a>
+        <div class="card" data-url="https://t.me/GhostCISProject">
+          <img src="pic/telega.png" alt="TG 1">
+          <p>Channel</p>
         </div>
-        <div class="card">
-          <a href="https://t.me/GhostCISProject_TaD">
-            <img src="pic/telega.png" alt="TG 2">
-            <p>Chat</p>
-          </a>
+        <div class="card" data-url="https://t.me/GhostCISProject_TaD">
+          <img src="pic/telega.png" alt="TG 2">
+          <p>Chat</p>
         </div>
-        <div class="card">
-          <a href="https://github.com/zerxfox/DexOptimizer">
-            <img src="pic/git.png" alt="GIT 1">
-            <p>Dex Optimizer</p>
-          </a>
+        <div class="card" data-url="https://github.com/zerxfox/DexOptimizer">
+          <img src="pic/git.png" alt="GIT 1">
+          <p>Dex Optimizer</p>
+        </div>
+        <div class="card" data-url="https://github.com/zerxfox/Webroot-Manager/blob/main/list_of_modules.md">
+          <img src="pic/git.png" alt="GIT 2">
+          <p>Modules</p>
         </div>
       </div>
       <div class="theme-selector">
@@ -77,17 +80,38 @@ EOF
 
 cat <<EOF > "$NGINX_CONF"
 events {}
-
+user root;
 http {
-  include /data/local/nginx/etc/nginx/mime.types;
+  include /data/local/openresty/nginx/conf/mime.types;
     server {
         listen $PORT;
         server_name localhost;
         root $MODULES_DIR;
         
         location / {
+          root $MODULES_DIR/webroot/files;
+          index modules_list.html;
+
+          location ~* /.*\.sh$ {
             root $MODULES_DIR/webroot/files;
-            index modules_list.html;
+            default_type text/plain;
+            content_by_lua_block {
+                local uri = ngx.var.uri
+                local script_path = ngx.var.document_root .. uri
+                local file = io.open(script_path, "r")
+                if not file then
+                    ngx.say("Script not found: " .. uri)
+                    return
+                end
+                file:close()
+
+                local command = "sh " .. script_path
+                local handle = io.popen(command)
+                local result = handle:read("*a")
+                handle:close()
+                ngx.say(result)
+            }
+          }
         }
 EOF
 
@@ -102,18 +126,45 @@ for module_dir in "$MODULES_DIR"/*; do
     found_modules=true
     module_name=$(basename "$module_dir")
     if [ -f "$module_dir/webroot/module_icon.png" ]; then
-      icon_path="$module_name/webroot/module_icon.png"
+        icon_path="$module_name/webroot/module_icon.png"
     else
-      icon_path="pic/module_icon.png"
+        icon_path="pic/module_icon.png"
     fi
-    echo "<div class=\"card\"><a href=\"http://localhost:$PORT/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></a><div class=\"checkmark\"></div></div>" >> "$OUTPUT_HTML"
+    echo "<div class=\"card\" data-url=\"http://localhost:$PORT/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></div>" >> "$OUTPUT_HTML"
     cat <<EOF >> "$NGINX_CONF"
 
         location /$module_name/webroot/ {
             root $MODULES_DIR;
             index index.html;
         }
+
 EOF
+    
+    if ls "$module_dir/webroot/"*.sh >/dev/null 2>&1; then
+      cat <<EOF >> "$NGINX_CONF"
+        location ~* /$module_name/webroot/.*\.sh$ {
+            root $MODULES_DIR;
+            default_type text/plain;
+            content_by_lua_block {
+                local uri = ngx.var.uri
+                local script_path = ngx.var.document_root .. uri
+                local file = io.open(script_path, "r")
+                if not file then
+                    ngx.say("Script not found: " .. uri)
+                    return
+                end
+                file:close()
+
+                local command = "sh " .. script_path
+                local handle = io.popen(command)
+                local result = handle:read("*a")
+                handle:close()
+                ngx.say(result)
+            }
+        }
+
+EOF
+    fi
   fi
 done
 
@@ -137,4 +188,8 @@ cat <<EOF >> "$OUTPUT_HTML"
 </html>
 EOF
 
-su -c "nginx -c '$NGINX_CONF'"
+if pgrep -x "openresty" > /dev/null; then
+    su -c "openresty -s reload"
+else
+    su -c "openresty -c '$NGINX_CONF'"
+fi
