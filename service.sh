@@ -5,7 +5,7 @@ do
   sleep 10
 done
 
-su -lp 2000 -c "cmd notification post -S bigtext -t 'Webroot Manager' 'Tag' 'Running on localhost:8080' > /dev/null 2>&1"
+su -lp 2000 -c "cmd notification post -S bigtext -t 'Webroot Manager' 'Tag' 'Running on http://localhost:8080' > /dev/null 2>&1"
 
 su -c "chmod 777 /data/adb/modules/webroot/files" >> /data/local/tmp/webroot.log 2>&1
 if [ $? -eq 0 ]; then
