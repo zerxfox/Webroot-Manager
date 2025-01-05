@@ -17,7 +17,6 @@ Telegram [Chat](https://t.me/GhostCISProject_TaD) [<img src="https://img.icons8.
 Run the following two commands in the terminal:  
 
 ```bash
-su -c "pkill nginx"  
 su -c webroot  
 ```
 
@@ -54,7 +53,7 @@ When linking `css`, `js`, `php`, or other files in `html`, avoid using a leading
 <link href="/styles.css">
 ```  
 
-## List of modules supporting Webroot Manager
+## List of modules
 [BatteryStat](https://github.com/British377/BatteryStat)
 
 ## Potential Issues  
@@ -132,7 +131,7 @@ module/
 <link href="/styles.css">
 ```
 
-## Список модулей, поддерживающих Webroot Manager
+## Список модулей
 [BatteryStat](https://github.com/British377/BatteryStat)
 
 ## Возможные ошибки  
