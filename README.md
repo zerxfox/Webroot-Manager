@@ -39,7 +39,7 @@ In this structure:
 **Note:** The `index.html` file can also be generated later after the module is launched.  
 
 ### File Path Recommendations  
-When linking `css`, `js`, `php`, or other files in `html`, avoid using a leading slash `/` in the `href` or `src` attributes. Otherwise, Webroot Manager will not properly connect these files.  
+When linking `css`, `js`, `php`, `sh`, or other files in `html`, avoid using a leading slash `/` in the `href` or `src` attributes. Otherwise, Webroot Manager will not properly connect these files.  
 
 **Correct examples:**  
 ```html
@@ -53,24 +53,14 @@ When linking `css`, `js`, `php`, or other files in `html`, avoid using a leading
 <link href="/styles.css">
 ```  
 
-## List of modules
-[BatteryStat](https://github.com/British377/BatteryStat)
-
 ## Potential Issues  
 
 ### **Q: The browser doesn't open `localhost:8080`**  
-**A:** Check if Webroot Manager is running by entering the following command in the terminal:  
+**A:**  Entering the following command in the terminal:  
 ```bash
 su -c webroot
 ```  
 
-- If the output shows:  
-  ```
-  nginx: [emerg] bind() to 0.0.0.0:8080 failed (98: Address already in use)
-  ```
-  This means Webroot Manager is active. 
-
-- If the output is empty, it confirms Webroot Manager is already running.  
 
 ### **Q: Webroot Manager displays pages incorrectly**  
 **A:** This issue is unrelated to the Webroot Manager itself. It merges the module's `html` and its components into a single configuration. Module developers can adapt their modules to work seamlessly with Webroot Manager in the future.  
@@ -116,7 +106,7 @@ module/
 **Примечание:** Файл `index.html` может быть сгенерирован позже, после запуска вашего модуля.  
 
 ### Рекомендации по путям к файлам  
-При подключении `css`, `js`, `php` или других файлов в `html`, начальный слэш `/` в `href` или `src` указывать не нужно. В противном случае Webroot Manager не сможет подключить файлы корректно.  
+При подключении `css`, `js`, `php`, `sh` или других файлов в `html`, начальный слэш `/` в `href` или `src` указывать не нужно. В противном случае Webroot Manager не сможет подключить файлы корректно.  
 
 **Правильные примеры:**  
 ```html
@@ -130,24 +120,13 @@ module/
 <link href="/styles.css">
 ```
 
-## Список модулей
-[BatteryStat](https://github.com/British377/BatteryStat)
-
 ## Возможные ошибки  
 
 ### **В: Браузер не открывает `localhost:8080`**  
-**О:** Проверьте, запущен ли Webroot Manager. Введите следующую команду в терминале:  
+**О:** Введите следующую команду в терминале:  
 ```bash
 su -c webroot
 ```  
-
-- Если вывод такой:  
-  ```
-  nginx: [emerg] bind() to 0.0.0.0:8080 failed (98: Address already in use)
-  ```
-  Это означает, что Webroot Manager активен.  
-
-- Если вывод пустой, это подтверждает, что Webroot Manager уже запущен.
 
 ### **В: Webroot Manager некорректно отображает страницы**  
 **О:** Эта ошибка не связана с Webroot Manager. Он объединяет `html` модуля и его компоненты в единую конфигурацию. Разработчики модулей могут адаптировать свои модули для работы с Webroot Manager в будущем.  
