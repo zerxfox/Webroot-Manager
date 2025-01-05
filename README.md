@@ -14,7 +14,7 @@ Telegram [Chat](https://t.me/GhostCISProject_TaD) [<img src="https://img.icons8.
 2. **Manually through a browser:** Open `localhost:8080`.  
 
 ## Restarting Webroot Manager  
-Run the following two commands in the terminal:  
+Run the following command in the terminal:  
 
 ```bash
 su -c webroot  
@@ -91,10 +91,9 @@ su -c webroot
 2. **Вручную через браузер:** откройте `localhost:8080`.  
 
 ## Перезапуск Webroot Manager  
-Введите две команды в терминале:  
+Введите команду в терминале:  
 
 ```bash
-su -c "pkill nginx"  
 su -c webroot  
 ```  
 
