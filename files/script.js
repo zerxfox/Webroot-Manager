@@ -3,6 +3,7 @@ const mainNav = document.querySelector('.main-nav');
 const mainElement = document.querySelector("main");
 const headerTitle = document.querySelector("header h2"); 
 const headerRight = document.querySelector(".header-right");
+const reloadBtn = document.querySelector('.reload-btn');
 
 const themes = {
   calmNight: "linear-gradient(45deg, hsl(240deg 100% 20%) 6%, hsl(281deg 100% 21%) 21%, hsl(304deg 100% 23%) 32%, hsl(319deg 100% 30%) 41%, hsl(329deg 100% 36%) 49%, hsl(336deg 100% 41%) 57%, hsl(346deg 83% 51%) 64%, hsl(3deg 95% 61%) 71%, hsl(17deg 100% 59%) 77%, hsl(30deg 100% 55%) 83%, hsl(40deg 100% 50%) 89%, hsl(48deg 100% 50%) 95%, hsl(55deg 100% 50%) 100%)",
@@ -20,6 +21,7 @@ const themes = {
 menuToggle.addEventListener('click', () => {
   mainNav.classList.toggle('show');
   menuToggle.classList.toggle('active');
+  reloadBtn.classList.toggle('hidden');
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -72,3 +74,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+reloadBtn.addEventListener('click', () => {
+  reloadBtn.classList.add('active');
+  fetch('reload.sh', { method: 'POST' })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    })
+    .catch(error => {
+      console.error('Error:', error.message);
+    });
+});
+
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', () => {
+      window.location.href = card.getAttribute('data-url');
+  });
+});
