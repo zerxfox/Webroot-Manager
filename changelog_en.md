@@ -14,6 +14,19 @@ New Features for Modules:
 - Nginx Integration: Automatic configuration generation for each module with web interface access.
 
 v1.1.0
+
 - Added missing libs.
 - Fixed a rare issue with file access.
 - Disabled modules with webroot no longer appear in the Webroot Manager.
+
+v1.2.3
+
+- Extended nginx capabilities.
+- Added support for ***.sh scripts.
+- Added a "Reload Webroot Manager" button to the home webpage.
+- Simplified Webroot Manager restart in the terminal.
+- Added list of modules supporting Webroot Manager.
+
+v1.2.4
+
+- Fixed styles.css.
