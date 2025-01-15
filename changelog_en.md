@@ -30,3 +30,10 @@ v1.2.3
 v1.2.4
 
 - Fixed styles.css.
+
+v1.2.5
+
+- The module archive size has been reduced.
+- A symlink to openresty has been added.
+- The information menu in customize.sh has been updated.
+- Architecture compatibility check added.
