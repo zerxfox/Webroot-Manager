@@ -22,6 +22,16 @@ Run the following command in the terminal:
 su -c webroot  
 ```
 
+## Determining Local IP Address
+To control another device, both devices must be connected to the same Wi-Fi network.
+
+To determine the local IP address, follow these steps:
+
+- Go to the module menu on the second device.
+- If the Wi-Fi connection is active, you will see information in the format IP:port.
+- Otherwise, a message "Unavailable" will appear.
+- In that case, you can connect to a Wi-Fi network and restart the module to see the local IP.
+
 ## Developer Documentation  
 Webroot Manager analyzes the following module structure:  
 
@@ -88,6 +98,16 @@ su -c webroot
 ```bash
 su -c webroot  
 ```  
+
+## Определение локального IP-адреса
+Чтобы управлять другим устройством, оба устройства должны быть подключены к одной и той же Wi-Fi сети. 
+
+Для определения локального IP-адреса выполните следующие действия:
+  
+- Зайдите в меню модуля на втором устройстве.
+- Если Wi-Fi соединение активно, вы увидите информацию в формате IP:порт.
+- В противном случае появится сообщение "Недоступно".
+- В ином случае, вы можете подключиться к Wi-Fi сети и перезапустить модуль, чтобы увидеть локальный IP.
 
 ## Документация для разработчиков  
 Webroot Manager анализирует следующую структуру модуля:  
