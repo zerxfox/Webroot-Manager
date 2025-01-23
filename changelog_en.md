@@ -37,3 +37,8 @@ v1.2.5
 - A symlink to openresty has been added.
 - The information menu in customize.sh has been updated.
 - Architecture compatibility check added.
+
+v1.2.6
+
+- Added the ability to control the device via the local IP.
+- Code improvements.
