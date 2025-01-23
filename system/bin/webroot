@@ -4,18 +4,30 @@ MODULES_DIR="/data/adb/modules"
 OUTPUT_HTML="$MODULES_DIR/webroot/files/modules_list.html"
 NGINX_CONF="$MODULES_DIR/webroot/files/nginx.conf"
 PORT=8080
+LANG=$(settings get system system_locales)
+
+is_russian() {
+  [[ "$LANG" == *"en-RU"* ]] || [[ "$LANG" == *"ru-"* ]]
+}
 
 if [ ! -d "$MODULES_DIR" ]; then
-  echo "Папка модулей $MODULES_DIR не найдена."
+  is_russian && echo "Папка модулей $MODULES_DIR не найдена." || echo "Modules directory $MODULES_DIR not found."
   exit 1
 fi
 
-su -c "chmod 755 /data/adb"
-su -c "chmod 755 $MODULES_DIR"
-su -c "chmod 755 $MODULES_DIR/webroot/files"
-su -c "chmod 755 /data/local/openresty"
+su -c "chmod 755 /data/adb $MODULES_DIR $MODULES_DIR/webroot/files /data/local/openresty"
 
 : > "$MODULES_DIR/webroot/files/nginx_error.log"
+SERVER_IP=$(ip addr show wlan0 | grep 'inet ' | cut -d' ' -f6 | cut -d'/' -f1)
+
+SERVER_INFO="${SERVER_IP:+$SERVER_IP:$PORT}"
+[ -z "$SERVER_IP" ] && SERVER_INFO=$(is_russian && echo "Недоступно" || echo "Unavailable")
+
+LISTEN="${SERVER_IP:+listen 0.0.0.0:$PORT;}"
+[ -z "$SERVER_IP" ] && LISTEN="listen $PORT;"
+
+SERVER_NAME="${SERVER_IP:+server_name $SERVER_IP;}"
+[ -z "$SERVER_IP" ] && SERVER_NAME="server_name localhost;"
 
 cat <<EOF > "$OUTPUT_HTML"
 <!DOCTYPE html>
@@ -43,6 +55,9 @@ cat <<EOF > "$OUTPUT_HTML"
     </header>
     <nav class="main-nav">
       <div class="cards">
+        <div class="card" data-url="http://$SERVER_INFO">
+          <p>$SERVER_INFO</p>
+        </div>
         <div class="card" data-url="https://t.me/GhostCISProject">
           <img src="pic/telega.png" alt="TG 1">
           <p>Channel</p>
@@ -50,10 +65,6 @@ cat <<EOF > "$OUTPUT_HTML"
         <div class="card" data-url="https://t.me/GhostCISProject_TaD">
           <img src="pic/telega.png" alt="TG 2">
           <p>Chat</p>
-        </div>
-        <div class="card" data-url="https://github.com/zerxfox/DexOptimizer">
-          <img src="pic/git.png" alt="GIT 1">
-          <p>Dex Optimizer</p>
         </div>
         <div class="card" data-url="https://github.com/zerxfox/Webroot-Manager/blob/main/list_of_modules.md">
           <img src="pic/git.png" alt="GIT 2">
@@ -84,8 +95,8 @@ user root;
 http {
   include /data/local/openresty/nginx/conf/mime.types;
     server {
-        listen $PORT;
-        server_name localhost;
+        $LISTEN
+        $SERVER_NAME
         root $MODULES_DIR;
         
         location / {
@@ -118,19 +129,19 @@ EOF
 found_modules=false
 
 for module_dir in "$MODULES_DIR"/*; do
-  if [ -f "$module_dir/disable" ]; then
-    continue
-  fi
+  [ -f "$module_dir/disable" ] && continue
   
   if [ -d "$module_dir/webroot" ] && [ -f "$module_dir/webroot/index.html" ]; then
     found_modules=true
     module_name=$(basename "$module_dir")
-    if [ -f "$module_dir/webroot/module_icon.png" ]; then
-        icon_path="$module_name/webroot/module_icon.png"
-    else
-        icon_path="pic/module_icon.png"
-    fi
-    echo "<div class=\"card\" data-url=\"http://localhost:$PORT/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></div>" >> "$OUTPUT_HTML"
+
+    icon_path="${module_name}/webroot/module_icon.png"
+    [ ! -f "$module_dir/webroot/module_icon.png" ] && icon_path="pic/module_icon.png"
+
+    BASE_URL="http://${SERVER_IP:-localhost}:$PORT"
+
+    echo "<div class=\"card\" data-url=\"$BASE_URL/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></div>" >> "$OUTPUT_HTML"
+    
     cat <<EOF >> "$NGINX_CONF"
 
         location /$module_name/webroot/ {
@@ -139,7 +150,7 @@ for module_dir in "$MODULES_DIR"/*; do
         }
 
 EOF
-    
+ 
     if ls "$module_dir/webroot/"*.sh >/dev/null 2>&1; then
       cat <<EOF >> "$NGINX_CONF"
         location ~* /$module_name/webroot/.*\.sh$ {
@@ -168,10 +179,8 @@ EOF
   fi
 done
 
-if [ "$found_modules" = false ]; then
-  echo "<p>Nothing</p>" >> "$OUTPUT_HTML"
-fi
-
+MSG_INFO=$(is_russian && echo "Нет модулей" || echo "Nothing")
+[ "$found_modules" = false ] && echo "<p>${MSG_INFO}</p>" >> "$OUTPUT_HTML"
 
 cat <<EOF >> "$NGINX_CONF"
         error_log $MODULES_DIR/webroot/files/nginx_error.log;
@@ -188,8 +197,4 @@ cat <<EOF >> "$OUTPUT_HTML"
 </html>
 EOF
 
-if pgrep -x "openresty" > /dev/null; then
-    su -c "openresty -s reload"
-else
-    su -c "openresty -c '$NGINX_CONF'"
-fi
+pgrep -x "openresty" > /dev/null && su -c "openresty -s reload" || su -c "openresty -c '$NGINX_CONF'"
