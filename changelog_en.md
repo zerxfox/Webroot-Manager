@@ -42,3 +42,9 @@ v1.2.6
 
 - Added the ability to control the device via the local IP.
 - Code improvements.
+
+v1.3.0
+
+- Implemented streaming response handling in OpenResty using `ngx.pipe` and `stdout_read_line()`. Now script output is sent to the client immediately instead of waiting for execution to finish.    
+- Improved shell script execution: data is now flushed in real time, providing better responsiveness.  
+- Added cleaning of access.log and error.log after starting Webroot Manager.
