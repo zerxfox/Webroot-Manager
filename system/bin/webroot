@@ -18,6 +18,8 @@ fi
 su -c "chmod 755 /data/adb $MODULES_DIR $MODULES_DIR/webroot/files /data/local/openresty"
 
 : > "$MODULES_DIR/webroot/files/nginx_error.log"
+: > "/data/local/openresty/nginx/logs/access.log"
+: > "/data/local/openresty/nginx/logs/error.log"
 SERVER_IP=$(ip addr show wlan0 | grep 'inet ' | cut -d' ' -f6 | cut -d'/' -f1)
 
 SERVER_INFO="${SERVER_IP:+$SERVER_IP:$PORT}"
@@ -107,20 +109,49 @@ http {
             root $MODULES_DIR/webroot/files;
             default_type text/plain;
             content_by_lua_block {
+                local pipe = require("ngx.pipe")
                 local uri = ngx.var.uri
                 local script_path = ngx.var.document_root .. uri
+        
                 local file = io.open(script_path, "r")
                 if not file then
-                    ngx.say("Script not found: " .. uri)
+                    ngx.status = 404
+                    ngx.say("Error: script not found")
                     return
                 end
                 file:close()
-
-                local command = "sh " .. script_path
-                local handle = io.popen(command)
-                local result = handle:read("*a")
-                handle:close()
-                ngx.say(result)
+        
+                local args_str = ngx.var.query_string or ""
+                local args_table = {}
+                for arg in string.gmatch(args_str, "[^&]+") do
+                    table.insert(args_table, arg)
+                end
+        
+                local command = {"sh", script_path}
+                for _, v in ipairs(args_table) do
+                    table.insert(command, v)
+                end
+        
+                local proc, err = pipe.spawn(command, { stdout = true, stderr = true })
+                if not proc then
+                    ngx.status = 500
+                    ngx.say("Error: failed to execute script - ", err)
+                    return
+                end
+        
+                ngx.header["Content-Type"] = "text/plain"
+                ngx.flush(true)
+        
+                while true do
+                    local line, err = proc:stdout_read_line()
+                    if not line then
+                        break
+                    end
+                    ngx.say(line)
+                    ngx.flush(true)
+                end
+        
+                proc:wait()
             }
           }
         }
@@ -157,29 +188,58 @@ EOF
             root $MODULES_DIR;
             default_type text/plain;
             content_by_lua_block {
+                local pipe = require("ngx.pipe")
                 local uri = ngx.var.uri
                 local script_path = ngx.var.document_root .. uri
+        
                 local file = io.open(script_path, "r")
                 if not file then
-                    ngx.say("Script not found: " .. uri)
+                    ngx.status = 404
+                    ngx.say("Error: script not found")
                     return
                 end
                 file:close()
-
-                local command = "sh " .. script_path
-                local handle = io.popen(command)
-                local result = handle:read("*a")
-                handle:close()
-                ngx.say(result)
+        
+                local args_str = ngx.var.query_string or ""
+                local args_table = {}
+                for arg in string.gmatch(args_str, "[^&]+") do
+                    table.insert(args_table, arg)
+                end
+        
+                local command = {"sh", script_path}
+                for _, v in ipairs(args_table) do
+                    table.insert(command, v)
+                end
+        
+                local proc, err = pipe.spawn(command, { stdout = true, stderr = true })
+                if not proc then
+                    ngx.status = 500
+                    ngx.say("Error: failed to execute script - ", err)
+                    return
+                end
+        
+                ngx.header["Content-Type"] = "text/plain"
+                ngx.flush(true)
+        
+                while true do
+                    local line, err = proc:stdout_read_line()
+                    if not line then
+                        break
+                    end
+                    ngx.say(line)
+                    ngx.flush(true)
+                end
+        
+                proc:wait()
             }
         }
-
+    
 EOF
     fi
   fi
 done
 
-MSG_INFO=$(is_russian && echo "Нет модулей" || echo "Nothing")
+MSG_INFO=$(is_russian && echo "Нет модулей" || echo "No modules")
 [ "$found_modules" = false ] && echo "<p>${MSG_INFO}</p>" >> "$OUTPUT_HTML"
 
 cat <<EOF >> "$NGINX_CONF"
