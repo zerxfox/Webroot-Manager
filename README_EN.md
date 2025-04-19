@@ -57,6 +57,14 @@ su -c webroot
 
 ---
 
+## 📜 Changelog
+
+For the full list of changes, please refer to:
+
+[![Changelog](https://img.shields.io/badge/📜-Changelog-blue)](changelog_en.md)
+
+---
+
 ## 📚 Developer Documentation
 
 Webroot Manager analyzes the module structure:
