@@ -139,6 +139,8 @@ http {
                     return
                 end
         
+                proc:set_timeouts(300000, 3600000, 3600000, 86400000)
+
                 ngx.header["Content-Type"] = "text/plain"
                 ngx.flush(true)
         
@@ -172,7 +174,8 @@ for module_dir in "$MODULES_DIR"/*; do
     BASE_URL="http://${SERVER_IP:-localhost}:$PORT"
 
     echo "<div class=\"card\" data-url=\"$BASE_URL/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></div>" >> "$OUTPUT_HTML"
-    
+    ORESTY_CONF="$MODULES_DIR/$module_name/webroot/oresty.conf"
+
     cat <<EOF >> "$NGINX_CONF"
 
         location /$module_name/webroot/ {
@@ -181,61 +184,7 @@ for module_dir in "$MODULES_DIR"/*; do
         }
 
 EOF
- 
-    if ls "$module_dir/webroot/"*.sh >/dev/null 2>&1; then
-      cat <<EOF >> "$NGINX_CONF"
-        location ~* /$module_name/webroot/.*\.sh$ {
-            root $MODULES_DIR;
-            default_type text/plain;
-            content_by_lua_block {
-                local pipe = require("ngx.pipe")
-                local uri = ngx.var.uri
-                local script_path = ngx.var.document_root .. uri
-        
-                local file = io.open(script_path, "r")
-                if not file then
-                    ngx.status = 404
-                    ngx.say("Error: script not found")
-                    return
-                end
-                file:close()
-        
-                local args_str = ngx.var.query_string or ""
-                local args_table = {}
-                for arg in string.gmatch(args_str, "[^&]+") do
-                    table.insert(args_table, arg)
-                end
-        
-                local command = {"sh", script_path}
-                for _, v in ipairs(args_table) do
-                    table.insert(command, v)
-                end
-        
-                local proc, err = pipe.spawn(command, { stdout = true, stderr = true })
-                if not proc then
-                    ngx.status = 500
-                    ngx.say("Error: failed to execute script - ", err)
-                    return
-                end
-        
-                ngx.header["Content-Type"] = "text/plain"
-                ngx.flush(true)
-        
-                while true do
-                    local line, err = proc:stdout_read_line()
-                    if not line then
-                        break
-                    end
-                    ngx.say(line)
-                    ngx.flush(true)
-                end
-        
-                proc:wait()
-            }
-        }
-    
-EOF
-    fi
+    [ -f "$ORESTY_CONF" ] && cat "$ORESTY_CONF" >> "$NGINX_CONF"
   fi
 done
 
