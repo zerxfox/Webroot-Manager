@@ -55,3 +55,8 @@ v1.4.0
 - Removed notification. The startup status is displayed through the module description.
 - Added log reading from `script-logs.out`.
 - Implemented modular configuration via `oresty.conf`.
+
+v1.4.1
+
+- Added `lua-resty-http` module.
+- Code improvements.
