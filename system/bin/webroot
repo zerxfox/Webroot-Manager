@@ -95,6 +95,7 @@ cat <<EOF > "$NGINX_CONF"
 events {}
 user root;
 http {
+  resolver 8.8.8.8 ipv6=off;
   include /data/local/openresty/nginx/conf/mime.types;
     server {
         $LISTEN
