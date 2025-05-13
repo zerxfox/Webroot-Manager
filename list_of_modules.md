@@ -1,1 +1,2 @@
+- [DexOptimizer](https://github.com/zerxfox/DexOptimizer)
 - [Information Carrier Device](https://github.com/British377/Information-Carrier-Device)
