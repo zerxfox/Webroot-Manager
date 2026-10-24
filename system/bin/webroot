@@ -4,10 +4,10 @@ MODULES_DIR="/data/adb/modules"
 OUTPUT_HTML="$MODULES_DIR/webroot/files/modules_list.html"
 NGINX_CONF="$MODULES_DIR/webroot/files/nginx.conf"
 PORT=8080
-LANG=$(settings get system system_locales)
+SYS_LANG=$(settings get system system_locales)
 
 is_russian() {
-  [[ "$LANG" == *"en-RU"* ]] || [[ "$LANG" == *"ru-"* ]]
+  [[ "$SYS_LANG" == *"en-RU"* ]] || [[ "$SYS_LANG" == *"ru-"* ]]
 }
 
 if [ ! -d "$MODULES_DIR" ]; then
@@ -31,63 +31,99 @@ LISTEN="${SERVER_IP:+listen 0.0.0.0:$PORT;}"
 SERVER_NAME="${SERVER_IP:+server_name $SERVER_IP;}"
 [ -z "$SERVER_IP" ] && SERVER_NAME="server_name localhost;"
 
+TOKEN=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
+[ -z "$TOKEN" ] && TOKEN="fallback$(date +%s)"
+
+HTML_LANG=$(is_russian && echo "ru" || echo "en")
+
+if [ -n "$SERVER_IP" ]; then
+  SERVER_TEXT="$SERVER_INFO"
+  SERVER_I18N=""
+  SERVER_DATA_URL="http://$SERVER_INFO"
+else
+  SERVER_TEXT="$SERVER_INFO"
+  SERVER_I18N=' data-i18n="serverUnavailable"'
+  SERVER_DATA_URL=""
+fi
+
 cat <<EOF > "$OUTPUT_HTML"
 <!DOCTYPE html>
-<html lang="en">
+<html lang="$HTML_LANG">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="webroot-token" content="$TOKEN">
   <title>WEBROOT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h2>WEBROOT</h2>
+      <div class="header-left">
+        <span class="status-chip">
+          <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+        </span>
+        <h2>WEBROOT</h2>
+      </div>
       <div class="header-right">
-        <button class="reload-btn">
+        <button class="reload-btn" type="button" aria-label="Перезагрузить" data-i18n-aria="reload">
           <svg class="reload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
             <path d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-2.34-5.66l-2.12 2.12H22V2l-2.41 2.41A9.97 9.97 0 0 0 12 2z"></path>
           </svg>
         </button>
-        <button class="menu-toggle">
+        <button class="menu-toggle" type="button" aria-label="Меню" aria-expanded="false" data-i18n-aria="menu">
           <span class="menu-icon"></span>
         </button>
       </div>
     </header>
+
     <nav class="main-nav">
-      <div class="cards">
-        <div class="card" data-url="http://$SERVER_INFO">
-          <p>$SERVER_INFO</p>
+      <div class="nav-panel">
+        <button class="nav-close" type="button" aria-label="Закрыть меню" data-i18n-aria="closeMenu">×</button>
+        <p class="section-label" data-i18n="quickLinks">Быстрые ссылки</p>
+        <div class="cards quick-links-grid">
+          <div class="card widget-card" data-url="$SERVER_DATA_URL">
+            <div>
+              <p style="font-weight:700;"$SERVER_I18N>$SERVER_TEXT</p>
+              <p style="color:var(--ink-muted); font-weight:500; margin-top:4px;" data-i18n="localServer">Локальный сервер</p>
+            </div>
+          </div>
+          <div class="card" data-url="https://github.com/zerxfox/Webroot-Manager/blob/main/list_of_modules.md">
+            <div class="icon-badge"><img src="pic/git.png" alt="GitHub" loading="lazy"></div>
+            <p data-i18n="modules">Модули</p>
+          </div>
+          <div class="card" data-url="https://t.me/GHOSTProject_CIS">
+            <div class="icon-badge"><img src="pic/telega.png" alt="Telegram" loading="lazy"></div>
+            <p data-i18n="channel">Канал</p>
+          </div>
+          <div class="card" data-url="https://t.me/GhostCISProject_TaD">
+            <div class="icon-badge"><img src="pic/telega.png" alt="Telegram" loading="lazy"></div>
+            <p data-i18n="chat">Чат</p>
+          </div>
         </div>
-        <div class="card" data-url="https://t.me/GhostCISProject">
-          <img src="pic/telega.png" alt="TG 1">
-          <p>Channel</p>
+
+        <p class="section-label" data-i18n="theme">Тема оформления</p>
+        <div class="theme-selector">
+          <div class="theme-option" data-theme="calmNight" role="button" tabindex="0" aria-label="calmNight" style="background: linear-gradient(45deg, hsl(240deg 100% 20%) 6%, hsl(281deg 100% 21%) 21%, hsl(304deg 100% 23%) 32%, hsl(319deg 100% 30%) 41%, hsl(329deg 100% 36%) 49%, hsl(336deg 100% 41%) 57%, hsl(346deg 83% 51%) 64%, hsl(3deg 95% 61%) 71%, hsl(17deg 100% 59%) 77%, hsl(30deg 100% 55%) 83%, hsl(40deg 100% 50%) 89%, hsl(48deg 100% 50%) 95%, hsl(55deg 100% 50%) 100%);"></div>
+          <div class="theme-option" data-theme="calmSunset" role="button" tabindex="0" aria-label="calmSunset" style="background: linear-gradient(-110deg, #581707, #445f64, #4d7e7e);"></div>
+          <div class="theme-option" data-theme="darkForest" role="button" tabindex="0" aria-label="darkForest" style="background: linear-gradient(150deg, hsl(0deg 89% 50%) 0%, hsl(16deg 100% 45%) 0%, hsl(24deg 100% 42%) 2%, hsl(32deg 100% 39%) 6%, hsl(39deg 100% 36%) 13%, hsl(48deg 100% 33%) 21%, hsl(58deg 100% 29%) 32%, hsl(69deg 100% 30%) 45%, hsl(79deg 100% 31%) 59%, hsl(97deg 62% 40%) 75%, hsl(123deg 47% 46%) 89%, hsl(149deg 84% 38%) 100%);"></div>
+          <div class="theme-option" data-theme="mistyDawn" role="button" tabindex="0" aria-label="mistyDawn" style="background: linear-gradient(-25deg, #153049, #5188aa, #133c3f);"></div>
+          <div class="theme-option" data-theme="urbanSlate" role="button" tabindex="0" aria-label="urbanSlate" style="background: linear-gradient(-75deg, #1b2229, #858585, #1b2629);"></div>
+          <div class="theme-option" data-theme="deepStorm" role="button" tabindex="0" aria-label="deepStorm" style="background: linear-gradient(-25deg, #0f3646, #4d0707, #7d868d);"></div>
+          <div class="theme-option" data-theme="eclipse" role="button" tabindex="0" aria-label="eclipse" style="background: linear-gradient(-9deg, #000000,#000000);"></div>
         </div>
-        <div class="card" data-url="https://t.me/GhostCISProject_TaD">
-          <img src="pic/telega.png" alt="TG 2">
-          <p>Chat</p>
+
+        <p class="section-label" data-i18n="language">Язык</p>
+        <div class="language-selector">
+          <button type="button" class="lang-option" data-lang="ru">RU</button>
+          <button type="button" class="lang-option" data-lang="en">EN</button>
         </div>
-        <div class="card" data-url="https://github.com/zerxfox/Webroot-Manager/blob/main/list_of_modules.md">
-          <img src="pic/git.png" alt="GIT 2">
-          <p>Modules</p>
-        </div>
-      </div>
-      <div class="theme-selector">
-        <div class="theme-option" data-theme="calmNight" style="background: linear-gradient(45deg, hsl(240deg 100% 20%) 6%, hsl(281deg 100% 21%) 21%, hsl(304deg 100% 23%) 32%, hsl(319deg 100% 30%) 41%, hsl(329deg 100% 36%) 49%, hsl(336deg 100% 41%) 57%, hsl(346deg 83% 51%) 64%, hsl(3deg 95% 61%) 71%, hsl(17deg 100% 59%) 77%, hsl(30deg 100% 55%) 83%, hsl(40deg 100% 50%) 89%, hsl(48deg 100% 50%) 95%, hsl(55deg 100% 50%) 100%);"></div>
-        <div class="theme-option" data-theme="mutedOcean" style="background: linear-gradient(320deg, hsl(141deg 82% 25%) 0%, hsl(114deg 48% 30%) 4%, hsl(95deg 53% 28%) 8%, hsl(81deg 55% 27%) 14%, hsl(70deg 55% 26%) 23%, hsl(60deg 52% 26%) 37%, hsl(51deg 50% 28%) 52%, hsl(43deg 47% 30%) 63%, hsl(37deg 44% 32%) 71%, hsl(31deg 39% 34%) 77%, hsl(26deg 35% 36%) 82%, hsl(21deg 30% 37%) 87%, hsl(16deg 26% 38%) 91%, hsl(11deg 21% 38%) 94%, hsl(6deg 17% 39%) 97%, hsl(0deg 13% 39%) 100%);"></div>
-        <div class="theme-option" data-theme="calmSunset" style="background: linear-gradient(-110deg, #581707, #445f64, #4d7e7e);"></div>
-        <div class="theme-option" data-theme="darkForest" style="background: linear-gradient(150deg, hsl(0deg 89% 50%) 0%, hsl(16deg 100% 45%) 0%, hsl(24deg 100% 42%) 2%, hsl(32deg 100% 39%) 6%, hsl(39deg 100% 36%) 13%, hsl(48deg 100% 33%) 21%, hsl(58deg 100% 29%) 32%, hsl(69deg 100% 30%) 45%, hsl(79deg 100% 31%) 59%, hsl(97deg 62% 40%) 75%, hsl(123deg 47% 46%) 89%, hsl(149deg 84% 38%) 100%);"></div>
-        <div class="theme-option" data-theme="duskyLavender" style="background: linear-gradient(45deg, hsl(240deg 100% 20%) 0%, hsl(256deg 83% 21%) 8%, hsl(263deg 64% 22%) 14%, hsl(270deg 48% 22%) 19%, hsl(281deg 34% 23%) 23%, hsl(300deg 21% 24%) 28%, hsl(334deg 16% 27%) 31%, hsl(15deg 17% 28%) 35%, hsl(38deg 25% 28%) 38%, hsl(50deg 35% 27%) 41%, hsl(53deg 40% 25%) 45%, hsl(51deg 39% 23%) 48%, hsl(49deg 38% 21%) 51%, hsl(46deg 38% 20%) 55%, hsl(42deg 37% 18%) 60%, hsl(38deg 36% 16%) 65%, hsl(32deg 34% 14%) 71%, hsl(24deg 33% 12%) 78%, hsl(15deg 33% 10%) 87%, hsl(0deg 38% 8%) 100%);"></div>
-        <div class="theme-option" data-theme="mistyDawn" style="background: linear-gradient(-25deg, #153049, #5188aa, #133c3f);"></div>
-        <div class="theme-option" data-theme="urbanSlate" style="background: linear-gradient(-75deg, #1b2229, #858585, #1b2629);"></div>
-        <div class="theme-option" data-theme="foggyRiver" style="background: linear-gradient(340deg, hsl(250deg 98% 18%) 0%, hsl(265deg 100% 18%) 5%, hsl(275deg 100% 18%) 10%, hsl(284deg 100% 18%) 14%, hsl(293deg 100% 18%) 19%, hsl(302deg 100% 18%) 24%, hsl(309deg 100% 20%) 29%, hsl(315deg 100% 22%) 33%, hsl(320deg 100% 24%) 38%, hsl(324deg 100% 26%) 43%, hsl(328deg 100% 28%) 48%, hsl(332deg 100% 30%) 52%, hsl(335deg 100% 31%) 57%, hsl(338deg 100% 32%) 62%, hsl(340deg 100% 34%) 67%, hsl(343deg 100% 35%) 71%, hsl(345deg 100% 36%) 76%, hsl(347deg 100% 37%) 81%, hsl(350deg 100% 38%) 86%, hsl(352deg 100% 38%) 90%, hsl(357deg 94% 40%) 95%, hsl(9deg 99% 39%) 100%);"></div>
-        <div class="theme-option" data-theme="deepStorm" style="background: linear-gradient(-25deg, #0f3646, #4d0707, #7d868d);"></div>
-        <div class="theme-option" data-theme="eclipse" style="background: linear-gradient(-9deg, #000000,#000000);"></div>
       </div>
     </nav>
+
     <main>
-      <h1> </h1>
       <div class="cards">
 EOF
 
@@ -101,10 +137,12 @@ http {
         $LISTEN
         $SERVER_NAME
         root $MODULES_DIR;
+        set \$module_name "";
         
         location / {
           root $MODULES_DIR/webroot/files;
           index modules_list.html;
+          try_files \$uri \$uri/ @module_fallback;
 
           location ~* /.*\.sh$ {
             root $MODULES_DIR/webroot/files;
@@ -158,6 +196,93 @@ http {
             }
           }
         }
+
+        location @module_fallback {
+            rewrite_by_lua_block {
+                local referer = ngx.var.http_referer or ""
+                local module = referer:match("/([%w_%-%.]+)/webroot/")
+                if not module then
+                    ngx.exit(404)
+                end
+                ngx.var.module_name = module
+            }
+            root $MODULES_DIR/\$module_name/webroot;
+            try_files \$uri =404;
+        }
+
+        location = /api/exec {
+            client_max_body_size 64k;
+            content_by_lua_block {
+                ngx.header["Content-Type"] = "application/json"
+
+                local function json_escape(s)
+                    s = tostring(s or "")
+                    local bs = string.char(92)
+                    s = s:gsub(bs, bs .. bs)
+                    s = s:gsub('"', bs .. '"')
+                    s = s:gsub("\r\n", bs .. "n")
+                    s = s:gsub("\n", bs .. "n")
+                    s = s:gsub("\r", bs .. "n")
+                    s = s:gsub("\t", bs .. "t")
+                    return s
+                end
+
+                local expected_token = "$TOKEN"
+                local auth = ngx.req.get_headers()["X-Auth"]
+                if auth ~= expected_token then
+                    ngx.status = 403
+                    ngx.say('{"code":1,"stdout":"","stderr":"forbidden"}')
+                    return
+                end
+
+                ngx.req.read_body()
+                local args = ngx.req.get_post_args()
+                local cmd = args and args.cmd
+                if not cmd or cmd == "" then
+                    ngx.status = 400
+                    ngx.say('{"code":1,"stdout":"","stderr":"bad request"}')
+                    return
+                end
+
+                local run_ok, code_or_err, out, errout = pcall(function()
+                    local pipe = require("ngx.pipe")
+                    local proc, spawn_err = pipe.spawn({ "sh", "-c", cmd }, { stdout = true, stderr = true })
+                    if not proc then
+                        return 1, "", tostring(spawn_err)
+                    end
+                    proc:set_timeouts(5000, 10000, 30000, 60000)
+
+                    local out_lines = {}
+                    while true do
+                        local line = proc:stdout_read_line()
+                        if not line then break end
+                        table.insert(out_lines, line)
+                    end
+
+                    local err_lines = {}
+                    while true do
+                        local line = proc:stderr_read_line()
+                        if not line then break end
+                        table.insert(err_lines, line)
+                    end
+
+                    local wait_ok, reason, status = proc:wait()
+                    return (status or (wait_ok and 0) or 1),
+                           table.concat(out_lines, "\n"),
+                           table.concat(err_lines, "\n")
+                end)
+
+                if not run_ok then
+                    ngx.status = 500
+                    ngx.say('{"code":1,"stdout":"","stderr":"' .. json_escape(code_or_err) .. '"}')
+                    return
+                end
+
+                ngx.say('{"code":' .. tostring(code_or_err) ..
+                        ',"stdout":"' .. json_escape(out) ..
+                        '","stderr":"' .. json_escape(errout) .. '"}')
+            }
+        }
 EOF
 
 found_modules=false
@@ -172,16 +297,41 @@ for module_dir in "$MODULES_DIR"/*; do
     icon_path="${module_name}/webroot/module_icon.png"
     [ ! -f "$module_dir/webroot/module_icon.png" ] && icon_path="pic/module_icon.png"
 
-    BASE_URL="http://${SERVER_IP:-localhost}:$PORT"
-
-    echo "<div class=\"card\" data-url=\"$BASE_URL/$module_name/webroot/index.html\"><img src=\"$icon_path\"><p>$module_name</p></div>" >> "$OUTPUT_HTML"
+    echo "<div class=\"card\" data-url=\"/$module_name/webroot/index.html\"><div class=\"icon-badge\"><img src=\"$icon_path\" alt=\"\" loading=\"lazy\"></div><p>$module_name</p></div>" >> "$OUTPUT_HTML"
     ORESTY_CONF="$MODULES_DIR/$module_name/webroot/oresty.conf"
 
     cat <<EOF >> "$NGINX_CONF"
 
+        location = /$module_name/webroot/index.html {
+            default_type 'text/html';
+            add_header Cache-Control "no-store" always;
+            content_by_lua_block {
+                local path = "$MODULES_DIR/$module_name/webroot/index.html"
+                local f = io.open(path, "r")
+                if not f then
+                    ngx.status = 404
+                    ngx.say("Not found")
+                    return
+                end
+                local content = f:read("*a")
+                f:close()
+
+                local shim = [[<script>(function(){if(window.ksu)return;var TOKEN="$TOKEN";function respond(name,errno,stdout,stderr){if(typeof window[name]==="function"){window[name](errno,stdout,stderr);}}window.ksu={exec:function(cmd,optionsJson,callbackName){fetch("/api/exec",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded","X-Auth":TOKEN},body:"cmd="+encodeURIComponent(cmd)}).then(function(res){return res.json();}).then(function(data){respond(callbackName,data.code,data.stdout||"",data.stderr||"");}).catch(function(err){respond(callbackName,-1,"",String(err));});},toast:function(msg){try{console.log("[ksu.toast]",msg);var t=document.createElement("div");t.textContent=msg;t.style.cssText="all:initial;box-sizing:border-box;position:fixed!important;top:auto!important;left:50%!important;right:auto!important;bottom:calc(24px + env(safe-area-inset-bottom,0px))!important;transform:translateX(-50%)!important;margin:0!important;z-index:2147483647;background:var(--surface-solid,#fff);color:var(--ink,#161d27);font:600 13px var(--font-body,sans-serif);padding:10px 16px;border-radius:12px;box-shadow:var(--surface-shadow,0 10px 30px rgba(0,0,0,.2));width:max-content;max-width:80vw;display:inline-block;text-align:center;white-space:pre-line;opacity:0;transition:opacity .2s;pointer-events:none";(document.body||document.documentElement).appendChild(t);requestAnimationFrame(function(){t.style.setProperty("opacity","1","important");});setTimeout(function(){t.style.setProperty("opacity","0","important");setTimeout(function(){t.remove();},250);},2500);}catch(e){}},fullScreen:function(){},moduleInfo:function(){return "{}";}};})();</script>]]
+
+                local patched = content:gsub("(<head[^>]*>)", "%1" .. shim, 1)
+                ngx.say(patched)
+            }
+        }
+
+        location = /$module_name/webroot/ {
+            content_by_lua_block {
+                ngx.exec("/$module_name/webroot/index.html")
+            }
+        }
+
         location /$module_name/webroot/ {
             root $MODULES_DIR;
-            index index.html;
+            add_header Cache-Control "no-store" always;
         }
 
 EOF
@@ -190,7 +340,7 @@ EOF
 done
 
 MSG_INFO=$(is_russian && echo "Нет модулей" || echo "No modules")
-[ "$found_modules" = false ] && echo "<p>${MSG_INFO}</p>" >> "$OUTPUT_HTML"
+[ "$found_modules" = false ] && echo "<p data-i18n=\"noModules\">${MSG_INFO}</p>" >> "$OUTPUT_HTML"
 
 cat <<EOF >> "$NGINX_CONF"
         error_log $MODULES_DIR/webroot/files/nginx_error.log;
