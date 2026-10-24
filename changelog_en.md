@@ -60,3 +60,39 @@ v1.4.1
 
 - Added `lua-resty-http` module.
 - Code improvements.
+
+v2.0.0
+
+🔌 KSU WebUI API Emulation
+
+- In HTML pages of modules opened via Webroot Manager, a JS shim `window.ksu` is now injected on the fly, emulating the KernelSU WebUI API: `ksu.exec()`, `ksu.toast()`, `ksu.fullScreen()`, `ksu.moduleInfo()`.
+- Added a server-side endpoint `POST /api/exec` (Lua + ngx.pipe) that executes a shell command and returns stdout/stderr/exit code in JSON.
+- Access to `/api/exec` is protected by a one-time token (X-Auth), generated at each startup (`TOKEN=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)`) and injected into `<meta name="webroot-token">`.
+- Thanks to this, modules originally written for KernelSU's built-in WebUI can now execute commands and display toasts directly inside Webroot Manager, without requiring separate modifications.
+
+🖼️ Modules now open in an embedded frame instead of redirect
+
+- Clicking a module card no longer navigates to a separate page, but opens an iframe within a popup overlay (`module-frame-overlay`).
+- Added a draggable close button for the frame (drag & drop with pointerdown/move/up support, with a 6px threshold to distinguish clicks from dragging).
+- Page background animation is now paused while the module frame is open or the tab is inactive (`anim-paused`).
+- External links (non-modules) continue to open as before: internal ones in the current tab, external ones in a new tab (`target=_blank`, noopener).
+
+🌍 UI Localization (RU/EN)
+
+- Added full language switching support via `data-i18n` / `data-i18n-aria` attributes and a JS translation dictionary.
+- Default language is determined from the device's system locale (via `settings get system system_locales`; previously only `en-RU`/`ru-*` were checked), with the user's choice saved to `localStorage`.
+- A separate language selector (RU/EN) has been added to the menu, next to the theme picker.
+
+🎨 Completely revamped interface
+
+- `styles.css` has been almost entirely rewritten: new components include `status-chip`, `signal-bars`, `widget-card`, `icon-badge`, `nav-panel`, `section-label`, `eyebrow`, `main-heading`, `module-dot`, and more.
+- The sidebar has been turned into a separate panel (`nav-panel`) with an explicit close button (`nav-close`), rather than relying solely on a second hamburger click.
+- Google web fonts (Poppins/Inter) are now used instead of the system Roboto.
+- Added `viewport-fit=cover` for proper rendering on displays with notches/cutouts.
+- Removed 3 themes (`mutedOcean`, `duskyLavender`, `foggyRiver`); the theme list has been slightly reduced and visually reworked.
+
+⚙️ Miscellaneous
+
+- In the nginx config for modules, `index.html` is now served directly via Lua (`content_by_lua_block`) with `Cache-Control: no-store`, ensuring that the ksu shim and token are always fresh and never cached.
+- Added `try_files ... @module_fallback` with module detection based on the Referer header — a fallback for relative paths within module webroots.
+- Removed the `chmod 755 /data/adb/modules` line from `customize.sh` — it no longer touches permissions on other modules' directories during installation.
